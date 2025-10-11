@@ -1,0 +1,67 @@
+name: Deploy Nepal Law Assistant
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  deploy-backend:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        cd backend
+        pip install -r requirements-minimal.txt
+    
+    - name: Test backend
+      run: |
+        cd backend
+        python -c "import server_working; print('✅ Backend imports successfully')"
+    
+    - name: Deploy to Railway
+      if: github.ref == 'refs/heads/main'
+      run: |
+        echo "🚀 Backend ready for Railway deployment"
+        echo "Configure Railway with these environment variables:"
+        echo "AI_PROVIDER=google"
+        echo "AI_MODEL=gemini-pro"
+        echo "GOOGLE_API_KEY=\${{ secrets.GOOGLE_API_KEY }}"
+        echo "MONGO_URL=\${{ secrets.MONGO_URL }}"
+
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+    
+    - name: Install dependencies
+      run: |
+        cd frontend
+        npm ci
+    
+    - name: Build frontend
+      run: |
+        cd frontend
+        npm run build
+    
+    - name: Deploy to Vercel
+      if: github.ref == 'refs/heads/main'
+      run: |
+        echo "🎨 Frontend built successfully"
+        echo "Ready for Vercel deployment"
+        echo "Set REACT_APP_BACKEND_URL to your Railway backend URL"
