@@ -35,7 +35,7 @@ A comprehensive AI-powered legal assistance platform designed specifically for N
 ### Backend
 - **FastAPI** - Modern Python web framework
 - **MongoDB** - Document database for storing queries and analyses
-- **Emergent LLM** - AI integration with Gemini 2.5 Pro
+- ** LLM** - AI integration with Gemini 2.5 Pro
 - **PyPDF2** - PDF document processing
 - **python-docx** - Word document processing
 
@@ -47,7 +47,7 @@ A comprehensive AI-powered legal assistance platform designed specifically for N
 - **Axios** - HTTP client for API calls
 
 ### AI & Legal Analysis
-- **Multiple AI Providers** - OpenAI GPT-4, Anthropic Claude, Google Gemini, Emergent LLM
+- **Multiple AI Providers** - OpenAI GPT-4, Anthropic Claude, Google Gemini, 
 - **Flexible Configuration** - Choose the AI provider that fits your needs and budget
 - **Custom Legal Prompts** - Specialized for Nepal law across all providers
 - **Document Processing** - Text extraction and analysis
@@ -59,7 +59,7 @@ A comprehensive AI-powered legal assistance platform designed specifically for N
 - Python 3.8+
 - Node.js 16+
 - MongoDB
-- Emergent LLM API key
+
 
 ### Backend Setup
 
@@ -81,7 +81,7 @@ A comprehensive AI-powered legal assistance platform designed specifically for N
    # Edit .env with your configuration:
    # MONGO_URL=mongodb://localhost:27017
    # DB_NAME=nepal_law_db
-   # AI_PROVIDER=openai  # or anthropic, google, emergent
+   # AI_PROVIDER=openai  # or anthropic, google, 
    # OPENAI_API_KEY=your_openai_api_key_here
    # CORS_ORIGINS=http://localhost:3000
    ```
