@@ -49,18 +49,22 @@ function App() {
   const loadHistory = async () => {
     try {
       const response = await axios.get(`${API}/legal-history/${userSession}`);
-      setHistory(response.data);
+      const data = Array.isArray(response.data) ? response.data : [];
+      setHistory(data);
     } catch (error) {
       console.error('Error loading history:', error);
+      setHistory([]);
     }
   };
 
   const loadDocumentHistory = async () => {
     try {
       const response = await axios.get(`${API}/document-history/${userSession}`);
-      setDocumentHistory(response.data);
+      const data = Array.isArray(response.data) ? response.data : [];
+      setDocumentHistory(data);
     } catch (error) {
       console.error('Error loading document history:', error);
+      setDocumentHistory([]);
     }
   };
 
