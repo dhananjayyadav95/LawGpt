@@ -34,6 +34,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Add explicit OPTIONS handler for CORS preflight
+from fastapi import Request, Response
+
+@app.options("/{full_path:path}")
+async def options_handler(request: Request, full_path: str):
+    """Handle CORS preflight requests"""
+    return Response(
+        status_code=200,
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "*",
+            "Access-Control-Max-Age": "3600",
+        }
+    )
+
 # Initialize Google Gemini client directly
 try:
     import google.generativeai as genai
