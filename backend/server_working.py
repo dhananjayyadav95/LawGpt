@@ -261,6 +261,176 @@ Focus on practical solutions that work in Nepal's legal system."""
         logger.error(f"Error solving problem: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error solving problem: {str(e)}")
 
+@app.get("/api/legal-history/{session_id}")
+async def get_legal_history(session_id: str):
+    """Get legal query history for a session"""
+    try:
+        # For now, return empty array since we don't have database
+        # In production, this would query MongoDB
+        logger.info(f"Fetching history for session: {session_id}")
+        return []
+    except Exception as e:
+        logger.error(f"Error fetching history: {str(e)}")
+        return []
+
+@app.get("/api/document-history/{session_id}")
+async def get_document_history(session_id: str):
+    """Get document analysis history for a session"""
+    try:
+        # For now, return empty array since we don't have database
+        logger.info(f"Fetching document history for session: {session_id}")
+        return []
+    except Exception as e:
+        logger.error(f"Error fetching document history: {str(e)}")
+        return []
+
+@app.post("/api/analyze-image-problem")
+async def analyze_image_problem(request: dict):
+    """Analyze legal problems from images using OCR and AI"""
+    try:
+        logger.info("Received image analysis request")
+        
+        if not AI_AVAILABLE:
+            raise HTTPException(status_code=500, detail="AI service not available")
+        
+        # Extract image data from request
+        image_data = request.get('image_data', '')
+        user_session = request.get('user_session', str(uuid.uuid4()))
+        
+        # For now, return a message that OCR is not available in production
+        # In full implementation, this would use Tesseract/EasyOCR
+        prompt = """I apologize, but image analysis with OCR is not currently available in this deployment.
+        
+To analyze legal documents from images, please:
+1. Convert the image to text manually
+2. Use the text query feature instead
+3. Or upload a PDF/Word document if available
+
+For future updates, OCR functionality will be added to process images directly."""
+
+        response = gemini_model.generate_content(prompt)
+        
+        return {
+            "query": {
+                "query_text": "Image analysis request",
+                "user_session": user_session,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            },
+            "analysis": response.text,
+            "legal_issues": ["OCR feature pending"],
+            "relevant_laws": [],
+            "recommendations": ["Please use text query or document upload instead"],
+            "next_steps": ["Convert image to text", "Use text query feature"]
+        }
+        
+    except Exception as e:
+        logger.error(f"Error analyzing image: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error analyzing image: {str(e)}")
+
+@app.post("/api/upload-document")
+async def upload_document(request: dict):
+    """Upload and analyze legal documents"""
+    try:
+        logger.info("Received document upload request")
+        
+        if not AI_AVAILABLE:
+            raise HTTPException(status_code=500, detail="AI service not available")
+        
+        # Extract document data
+        file_name = request.get('file_name', 'document')
+        file_content = request.get('file_content', '')
+        user_session = request.get('user_session', str(uuid.uuid4()))
+        
+        # For now, provide guidance since file processing isn't fully implemented
+        prompt = f"""Analyze this legal document request:
+
+Document: {file_name}
+Content preview: {file_content[:500] if file_content else 'No content provided'}
+
+As a Nepal legal expert, provide:
+1. What type of legal document this appears to be
+2. Key legal considerations for this type of document
+3. Important clauses to review
+4. Potential legal issues to watch for
+5. Recommendations for next steps"""
+
+        response = gemini_model.generate_content(prompt)
+        
+        return {
+            "document": {
+                "file_name": file_name,
+                "user_session": user_session,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            },
+            "analysis": response.text,
+            "legal_issues": ["Document analysis completed"],
+            "relevant_laws": [],
+            "recommendations": [
+                "Review the analysis carefully",
+                "Consult with a legal professional for specific advice",
+                "Keep original documents safe"
+            ]
+        }
+        
+    except Exception as e:
+        logger.error(f"Error uploading document: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error uploading document: {str(e)}")
+
+@app.post("/api/legal-research")
+async def legal_research(request: dict):
+    """Conduct legal research on Nepal law topics"""
+    try:
+        logger.info("Received legal research request")
+        
+        if not AI_AVAILABLE:
+            raise HTTPException(status_code=500, detail="AI service not available")
+        
+        # Extract research query
+        query_text = request.get('query_text', '')
+        user_session = request.get('user_session', str(uuid.uuid4()))
+        
+        # Create comprehensive research prompt
+        prompt = f"""As an expert in Nepal law, conduct comprehensive legal research on:
+
+Query: {query_text}
+
+Provide:
+1. **Overview**: Brief explanation of the legal topic
+2. **Relevant Laws**: Specific Nepal laws, acts, and regulations that apply
+3. **Legal Precedents**: Important court cases or legal precedents in Nepal
+4. **Current Status**: Current legal framework and any recent changes
+5. **Practical Application**: How this applies in real situations
+6. **Key Considerations**: Important points to remember
+7. **Resources**: Where to find more information
+
+Focus specifically on Nepal's legal system and provide accurate, detailed information."""
+
+        response = gemini_model.generate_content(prompt)
+        
+        return {
+            "query": {
+                "query_text": query_text,
+                "user_session": user_session,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            },
+            "research_findings": response.text,
+            "relevant_laws": [
+                "Constitution of Nepal 2072",
+                "Civil Code 2074",
+                "Criminal Code 2074"
+            ],
+            "case_studies": [],
+            "recommendations": [
+                "Consult official legal texts for exact wording",
+                "Seek professional legal advice for specific cases",
+                "Stay updated on legal amendments"
+            ]
+        }
+        
+    except Exception as e:
+        logger.error(f"Error conducting research: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error conducting research: {str(e)}")
+
 @app.get("/api/health")
 async def health_check():
     """Comprehensive health check"""
