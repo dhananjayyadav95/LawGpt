@@ -67,6 +67,19 @@ class LegalQueryCreate(BaseModel):
     query_text: str
     user_session: Optional[str] = None
 
+class ImageAnalysisRequest(BaseModel):
+    image_data: str
+    user_session: Optional[str] = None
+
+class DocumentUploadRequest(BaseModel):
+    file_name: str
+    file_content: str
+    user_session: Optional[str] = None
+
+class ResearchRequest(BaseModel):
+    query_text: str
+    user_session: Optional[str] = None
+
 class LegalResponse(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     query_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -285,7 +298,7 @@ async def get_document_history(session_id: str):
         return []
 
 @app.post("/api/analyze-image-problem")
-async def analyze_image_problem(request: dict):
+async def analyze_image_problem(request: ImageAnalysisRequest):
     """Analyze legal problems from images using OCR and AI"""
     try:
         logger.info("Received image analysis request")
@@ -294,8 +307,8 @@ async def analyze_image_problem(request: dict):
             raise HTTPException(status_code=500, detail="AI service not available")
         
         # Extract image data from request
-        image_data = request.get('image_data', '')
-        user_session = request.get('user_session', str(uuid.uuid4()))
+        image_data = request.image_data
+        user_session = request.user_session or str(uuid.uuid4())
         
         # For now, return a message that OCR is not available in production
         # In full implementation, this would use Tesseract/EasyOCR
@@ -328,7 +341,7 @@ For future updates, OCR functionality will be added to process images directly."
         raise HTTPException(status_code=500, detail=f"Error analyzing image: {str(e)}")
 
 @app.post("/api/upload-document")
-async def upload_document(request: dict):
+async def upload_document(request: DocumentUploadRequest):
     """Upload and analyze legal documents"""
     try:
         logger.info("Received document upload request")
@@ -337,9 +350,9 @@ async def upload_document(request: dict):
             raise HTTPException(status_code=500, detail="AI service not available")
         
         # Extract document data
-        file_name = request.get('file_name', 'document')
-        file_content = request.get('file_content', '')
-        user_session = request.get('user_session', str(uuid.uuid4()))
+        file_name = request.file_name
+        file_content = request.file_content
+        user_session = request.user_session or str(uuid.uuid4())
         
         # For now, provide guidance since file processing isn't fully implemented
         prompt = f"""Analyze this legal document request:
@@ -377,7 +390,7 @@ As a Nepal legal expert, provide:
         raise HTTPException(status_code=500, detail=f"Error uploading document: {str(e)}")
 
 @app.post("/api/legal-research")
-async def legal_research(request: dict):
+async def legal_research(request: ResearchRequest):
     """Conduct legal research on Nepal law topics"""
     try:
         logger.info("Received legal research request")
@@ -386,8 +399,8 @@ async def legal_research(request: dict):
             raise HTTPException(status_code=500, detail="AI service not available")
         
         # Extract research query
-        query_text = request.get('query_text', '')
-        user_session = request.get('user_session', str(uuid.uuid4()))
+        query_text = request.query_text
+        user_session = request.user_session or str(uuid.uuid4())
         
         # Create comprehensive research prompt
         prompt = f"""As an expert in Nepal law, conduct comprehensive legal research on:
