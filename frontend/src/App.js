@@ -270,19 +270,19 @@ function App() {
               </CardHeader>
               <CardContent>
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                  <TabsList className="grid w-full grid-cols-4">
+                  <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="text" className="flex items-center gap-1 text-xs">
                       <FileText className="h-3 w-3" />
                       Query
                     </TabsTrigger>
-                    <TabsTrigger value="image" className="flex items-center gap-1 text-xs">
+                    {/* <TabsTrigger value="image" className="flex items-center gap-1 text-xs">
                       <Camera className="h-3 w-3" />
                       Photo
                     </TabsTrigger>
                     <TabsTrigger value="document" className="flex items-center gap-1 text-xs">
                       <Upload className="h-3 w-3" />
                       Document
-                    </TabsTrigger>
+                    </TabsTrigger> */}
                     <TabsTrigger value="research" className="flex items-center gap-1 text-xs">
                       <BookOpen className="h-3 w-3" />
                       Research
