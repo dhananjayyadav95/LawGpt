@@ -13,6 +13,19 @@ import os
 import logging
 import asyncio
 
+# Import enhanced legal knowledge system
+try:
+    from legal_knowledge import (
+        get_relevant_laws,
+        get_court_guidance,
+        create_enhanced_prompt,
+        format_legal_response
+    )
+    LEGAL_KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    logger.warning("Legal knowledge module not available")
+    LEGAL_KNOWLEDGE_AVAILABLE = False
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -158,26 +171,46 @@ async def analyze_legal_problem(input: LegalQueryCreate):
             user_session=user_session
         )
         
-        # System message for Nepal legal analysis
-        system_message = """You are an expert Nepal legal assistant with LL.B qualification and extensive experience in Nepal's legal system. Your role is to:
+        # Use enhanced legal knowledge system if available
+        if LEGAL_KNOWLEDGE_AVAILABLE:
+            system_message = create_enhanced_prompt(input.query_text, "analysis")
+            relevant_laws = get_relevant_laws(input.query_text)
+            court_info = get_court_guidance(input.query_text)
+            
+            user_message = f"""**Legal Query:** {input.query_text}
 
-1. Analyze legal problems and provide relevant Nepal law guidance
-2. Reference specific Nepal acts, laws, and regulations when applicable
-3. Provide practical legal advice within Nepal's legal framework
-4. Always mention relevant sources and act names
-5. Format your response with clear sections: Problem Analysis, Relevant Laws, Recommendations, and Sources
+**Analysis Requirements:**
+Please provide a comprehensive legal analysis following this structure:
 
-IMPORTANT: Focus on Nepal's legal system, acts, and regulations. Be specific about law references and provide actionable guidance.
+## 1. PROBLEM SUMMARY
+Brief overview of the legal issue
 
-Provide comprehensive analysis covering:
-- Problem Summary
-- Applicable Nepal Laws
-- Legal Rights and Obligations
-- Recommended Actions
-- Potential Outcomes
-- Sources for Further Reference"""
-        
-        user_message = f"Legal Problem: {input.query_text}\n\nPlease analyze this legal issue according to Nepal law and provide relevant legal guidance with specific law references."
+## 2. APPLICABLE NEPAL LAWS
+List specific laws, acts, sections, and articles that apply
+
+## 3. LEGAL ANALYSIS
+Detailed analysis of rights, obligations, and legal position
+
+## 4. COURT JURISDICTION & PROCEDURE
+- Which court handles this matter
+- Required documents
+- Filing procedure
+- Expected timeline
+
+## 5. RECOMMENDED ACTIONS
+Step-by-step guidance on what to do
+
+## 6. IMPORTANT CONSIDERATIONS
+Warnings, deadlines, and critical points
+
+## 7. CITATIONS & SOURCES
+Specific law references used in this analysis
+
+Provide accurate, practical, and actionable legal guidance."""
+        else:
+            # Fallback to basic prompt
+            system_message = """You are an expert Nepal legal assistant with LL.B qualification and extensive experience in Nepal's legal system."""
+            user_message = f"Legal Problem: {input.query_text}\n\nPlease analyze this legal issue according to Nepal law."
         
         logger.info("Sending request to OpenAI...")
         
@@ -402,21 +435,61 @@ async def legal_research(request: ResearchRequest):
         query_text = request.query_text
         user_session = request.user_session or str(uuid.uuid4())
         
+        # Use enhanced legal knowledge system
+        if LEGAL_KNOWLEDGE_AVAILABLE:
+            system_prompt = create_enhanced_prompt(query_text, "research")
+            relevant_laws = get_relevant_laws(query_text)
+        else:
+            system_prompt = "You are an expert in Nepal law."
+            relevant_laws = ["Constitution of Nepal 2072", "Civil Code 2074"]
+        
         # Create comprehensive research prompt
-        prompt = f"""As an expert in Nepal law, conduct comprehensive legal research on:
+        prompt = f"""{system_prompt}
 
-Query: {query_text}
+**Research Topic:** {query_text}
 
-Provide:
-1. **Overview**: Brief explanation of the legal topic
-2. **Relevant Laws**: Specific Nepal laws, acts, and regulations that apply
-3. **Legal Precedents**: Important court cases or legal precedents in Nepal
-4. **Current Status**: Current legal framework and any recent changes
-5. **Practical Application**: How this applies in real situations
-6. **Key Considerations**: Important points to remember
-7. **Resources**: Where to find more information
+**Required Research Structure:**
 
-Focus specifically on Nepal's legal system and provide accurate, detailed information."""
+## 1. LEGAL TOPIC OVERVIEW
+- Definition and scope
+- Legal significance in Nepal context
+
+## 2. APPLICABLE NEPAL LAWS
+- Primary legislation (with specific sections/articles)
+- Secondary legislation and regulations
+- Constitutional provisions
+
+## 3. LEGAL FRAMEWORK ANALYSIS
+- Historical development
+- Current legal position
+- Recent amendments or changes
+
+## 4. COURT INTERPRETATION & PRECEDENTS
+- Supreme Court interpretations
+- Important case precedents
+- Judicial guidelines
+
+## 5. PRACTICAL APPLICATION
+- How the law applies in real situations
+- Common scenarios and outcomes
+- Rights and obligations
+
+## 6. PROCEDURAL REQUIREMENTS
+- Required documents
+- Filing procedures
+- Timelines and deadlines
+
+## 7. KEY CONSIDERATIONS
+- Important legal points
+- Common pitfalls to avoid
+- Best practices
+
+## 8. CITATIONS & REFERENCES
+- Specific law sections cited
+- Official sources
+- Where to find full legal texts
+
+Provide comprehensive, accurate, and well-cited legal research."""
 
         response = gemini_model.generate_content(prompt)
         
@@ -427,16 +500,17 @@ Focus specifically on Nepal's legal system and provide accurate, detailed inform
                 "timestamp": datetime.now(timezone.utc).isoformat()
             },
             "research_findings": response.text,
-            "relevant_laws": [
+            "relevant_laws": relevant_laws if LEGAL_KNOWLEDGE_AVAILABLE else [
                 "Constitution of Nepal 2072",
                 "Civil Code 2074",
                 "Criminal Code 2074"
             ],
             "case_studies": [],
             "recommendations": [
-                "Consult official legal texts for exact wording",
-                "Seek professional legal advice for specific cases",
-                "Stay updated on legal amendments"
+                "Verify information with official legal texts",
+                "Consult a qualified Nepal lawyer for specific legal advice",
+                "Check for recent amendments and updates",
+                "Review Supreme Court decisions for latest interpretations"
             ]
         }
         
