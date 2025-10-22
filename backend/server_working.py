@@ -3,7 +3,7 @@ Nepal Law Assistant Backend - Working Version
 Bulletproof implementation with all issues fixed
 """
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import List, Optional
@@ -12,6 +12,11 @@ from datetime import datetime, timezone
 import os
 import logging
 import asyncio
+
+# Rate limiting
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 # Import enhanced legal knowledge system
 try:
@@ -30,20 +35,49 @@ except ImportError:
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Set environment variables directly (no .env dependency)
-os.environ['AI_PROVIDER'] = 'google'
-os.environ['AI_MODEL'] = 'gemini-2.5-flash'
-os.environ['GOOGLE_API_KEY'] = 'AIzaSyCYhbFypKpjOF3ACqPgmgbb6-ir_J53IEY'
+# Load environment variables from .env file (for local development)
+# In production, set these as environment variables on your hosting platform
+from dotenv import load_dotenv
+load_dotenv()
+
+# Validate required environment variables
+REQUIRED_ENV_VARS = ['GOOGLE_API_KEY']
+missing_vars = [var for var in REQUIRED_ENV_VARS if not os.environ.get(var)]
+if missing_vars:
+    logger.error(f"Missing required environment variables: {', '.join(missing_vars)}")
+    logger.error("Please set GOOGLE_API_KEY in your .env file or environment variables")
+
+# Set defaults for optional variables
+os.environ.setdefault('AI_PROVIDER', 'google')
+os.environ.setdefault('AI_MODEL', 'gemini-2.5-flash')
 
 # Create FastAPI app
 app = FastAPI(title="Nepal Law Assistant API", version="1.0.0")
 
-# Add CORS middleware
+# Initialize rate limiter
+limiter = Limiter(key_func=get_remote_address, default_limits=["100/hour"])
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# Configure CORS - restrict to specific origins in production
+# Get allowed origins from environment variable or use defaults
+ALLOWED_ORIGINS = os.environ.get('ALLOWED_ORIGINS', '').split(',') if os.environ.get('ALLOWED_ORIGINS') else [
+    "http://localhost:3000",  # Local development
+    "http://localhost:5173",  # Vite dev server
+    # Add your production frontend URL here or set ALLOWED_ORIGINS env var
+    # Example: "https://yourdomain.com"
+]
+
+# Remove empty strings from the list
+ALLOWED_ORIGINS = [origin.strip() for origin in ALLOWED_ORIGINS if origin.strip()]
+
+logger.info(f"CORS allowed origins: {ALLOWED_ORIGINS}")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -160,7 +194,8 @@ async def api_root():
     }
 
 @app.post("/api/analyze-legal-problem", response_model=LegalAnalysis)
-async def analyze_legal_problem(input: LegalQueryCreate):
+@limiter.limit("10/minute")  # Limit to 10 requests per minute per IP
+async def analyze_legal_problem(request: Request, input: LegalQueryCreate):
     """Analyze legal problems using OpenAI"""
     try:
         logger.info(f"Received legal query: {input.query_text[:50]}...")
@@ -440,7 +475,8 @@ As a Nepal legal expert, provide:
         raise HTTPException(status_code=500, detail=f"Error uploading document: {str(e)}")
 
 @app.post("/api/legal-research")
-async def legal_research(request: ResearchRequest):
+@limiter.limit("10/minute")  # Limit to 10 requests per minute per IP
+async def legal_research(request: Request, research_request: ResearchRequest):
     """Conduct legal research on Nepal law topics"""
     try:
         logger.info("Received legal research request")
@@ -449,8 +485,8 @@ async def legal_research(request: ResearchRequest):
             raise HTTPException(status_code=500, detail="AI service not available")
         
         # Extract research query
-        query_text = request.query_text
-        user_session = request.user_session or str(uuid.uuid4())
+        query_text = research_request.query_text
+        user_session = research_request.user_session or str(uuid.uuid4())
         
         # Use enhanced legal knowledge system
         if LEGAL_KNOWLEDGE_AVAILABLE:
