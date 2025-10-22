@@ -29,8 +29,10 @@ function App() {
   const [imageAnalysis, setImageAnalysis] = useState(null);
   const [imageLoading, setImageLoading] = useState(false);
   const [problemSolution, setProblemSolution] = useState(null);
+  const [isStreaming, setIsStreaming] = useState(false);
   const fileInputRef = useRef(null);
   const imageInputRef = useRef(null);
+  const responseEndRef = useRef(null);
   
   const [userSession] = useState(() => {
     const stored = localStorage.getItem('nepal-law-session');
@@ -45,6 +47,13 @@ function App() {
     loadHistory();
     loadDocumentHistory();
   }, []);
+
+  // Auto-scroll to bottom when streaming
+  useEffect(() => {
+    if (isStreaming && responseEndRef.current) {
+      responseEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+  }, [analysis, isStreaming]);
 
   const loadHistory = async () => {
     try {
@@ -92,6 +101,7 @@ function App() {
     if (!query.trim()) return;
     
     setLoading(true);
+    setIsStreaming(true);
     const queryText = query;
     setQuery(''); // Clear input immediately
     
@@ -196,6 +206,7 @@ function App() {
       alert('Error analyzing your legal problem. Please try again.');
     } finally {
       setLoading(false);
+      setIsStreaming(false);
     }
   };
 
@@ -992,8 +1003,22 @@ function App() {
                     
                     <Separator className="my-4" />
                     
-                    <div className="space-y-3">
+                    {/* Streaming indicator */}
+                    {isStreaming && (
+                      <div className="streaming-indicator">
+                        <div className="streaming-dots">
+                          <span></span>
+                          <span></span>
+                          <span></span>
+                        </div>
+                        <span>Analyzing your legal query...</span>
+                      </div>
+                    )}
+                    
+                    <div className="space-y-3 streaming-text">
                       {formatResponse(analysis.response.response_text)}
+                      {isStreaming && <span className="typing-cursor"></span>}
+                      <div ref={responseEndRef} />
                     </div>
                     
                     {analysis.response.relevant_laws.length > 0 && (
