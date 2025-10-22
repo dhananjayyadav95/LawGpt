@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added - 2024-01-XX
+- **Query History Feature**: ChatGPT-style history management
+  - In-memory storage on backend (stores last 50 queries per session)
+  - localStorage backup on frontend (persists across page refreshes)
+  - History survives page refreshes but clears on browser data clear
+  - Ready for future database integration with user authentication
+- Both text queries and research queries now appear in history
+- Automatic history loading on app start
+
 ### Changed - 2024-01-XX
 - Rolled back to commit 80ea714 (Enhanced Legal Response System)
 - Disabled image upload feature (Photo tab)

@@ -48,12 +48,32 @@ function App() {
 
   const loadHistory = async () => {
     try {
+      // Try to load from backend first
       const response = await axios.get(`${API}/legal-history/${userSession}`);
       const data = Array.isArray(response.data) ? response.data : [];
-      setHistory(data);
+      
+      if (data.length > 0) {
+        setHistory(data);
+        // Also save to localStorage as backup
+        localStorage.setItem(`history-${userSession}`, JSON.stringify(data));
+      } else {
+        // Fallback to localStorage if backend has no data
+        const localData = localStorage.getItem(`history-${userSession}`);
+        if (localData) {
+          setHistory(JSON.parse(localData));
+        }
+      }
     } catch (error) {
       console.error('Error loading history:', error);
-      setHistory([]);
+      // Fallback to localStorage on error
+      try {
+        const localData = localStorage.getItem(`history-${userSession}`);
+        if (localData) {
+          setHistory(JSON.parse(localData));
+        }
+      } catch (e) {
+        setHistory([]);
+      }
     }
   };
 
@@ -80,7 +100,12 @@ function App() {
       
       setAnalysis(response.data);
       setQuery('');
-      loadHistory(); // Refresh history
+      
+      // Save to localStorage immediately
+      const currentHistory = [...history, response.data];
+      localStorage.setItem(`history-${userSession}`, JSON.stringify(currentHistory));
+      
+      loadHistory(); // Refresh history from backend
     } catch (error) {
       console.error('Error analyzing legal problem:', error);
       alert('Error analyzing your legal problem. Please try again.');
@@ -150,7 +175,12 @@ function App() {
       
       setResearchResult(response.data);
       setResearchQuery('');
-      loadHistory(); // Refresh history
+      
+      // Save to localStorage immediately
+      const currentHistory = [...history, response.data];
+      localStorage.setItem(`history-${userSession}`, JSON.stringify(currentHistory));
+      
+      loadHistory(); // Refresh history from backend
     } catch (error) {
       console.error('Error conducting legal research:', error);
       alert('Error conducting legal research. Please try again.');

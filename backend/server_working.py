@@ -75,6 +75,10 @@ except Exception as e:
     AI_AVAILABLE = False
     gemini_model = None
 
+# In-memory storage for queries (temporary solution until database is added)
+query_history = {}  # {session_id: [queries]}
+document_history = {}  # {session_id: [documents]}
+
 # Data models
 class LegalQueryCreate(BaseModel):
     query_text: str
@@ -254,7 +258,17 @@ Provide accurate, practical, and actionable legal guidance."""
         
         logger.info("Legal analysis completed successfully")
         
-        return LegalAnalysis(query=query, response=response)
+        # Store in memory for history
+        analysis_result = LegalAnalysis(query=query, response=response)
+        if user_session not in query_history:
+            query_history[user_session] = []
+        query_history[user_session].append(analysis_result.dict())
+        
+        # Keep only last 50 queries per session
+        if len(query_history[user_session]) > 50:
+            query_history[user_session] = query_history[user_session][-50:]
+        
+        return analysis_result
         
     except HTTPException:
         raise
@@ -311,10 +325,11 @@ Focus on practical solutions that work in Nepal's legal system."""
 async def get_legal_history(session_id: str):
     """Get legal query history for a session"""
     try:
-        # For now, return empty array since we don't have database
-        # In production, this would query MongoDB
         logger.info(f"Fetching history for session: {session_id}")
-        return []
+        # Return queries from in-memory storage
+        history = query_history.get(session_id, [])
+        logger.info(f"Found {len(history)} queries for session {session_id}")
+        return history
     except Exception as e:
         logger.error(f"Error fetching history: {str(e)}")
         return []
@@ -323,9 +338,11 @@ async def get_legal_history(session_id: str):
 async def get_document_history(session_id: str):
     """Get document analysis history for a session"""
     try:
-        # For now, return empty array since we don't have database
         logger.info(f"Fetching document history for session: {session_id}")
-        return []
+        # Return documents from in-memory storage
+        history = document_history.get(session_id, [])
+        logger.info(f"Found {len(history)} documents for session {session_id}")
+        return history
     except Exception as e:
         logger.error(f"Error fetching document history: {str(e)}")
         return []
@@ -493,19 +510,27 @@ Provide comprehensive, accurate, and well-cited legal research."""
 
         response = gemini_model.generate_content(prompt)
         
-        return {
+        result = {
             "query": {
                 "query_text": query_text,
                 "user_session": user_session,
                 "timestamp": datetime.now(timezone.utc).isoformat()
             },
-            "research_findings": response.text,
-            "relevant_laws": relevant_laws if LEGAL_KNOWLEDGE_AVAILABLE else [
-                "Constitution of Nepal 2072",
-                "Civil Code 2074",
-                "Criminal Code 2074"
-            ],
-            "case_studies": [],
+            "response": {
+                "response_text": response.text,
+                "relevant_laws": relevant_laws if LEGAL_KNOWLEDGE_AVAILABLE else [
+                    "Constitution of Nepal 2072",
+                    "Civil Code 2074",
+                    "Criminal Code 2074"
+                ],
+                "sources": [
+                    "Constitution of Nepal 2072",
+                    "Nepal Law Commission",
+                    "Supreme Court of Nepal"
+                ],
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            },
+            "case_precedents": [],
             "recommendations": [
                 "Verify information with official legal texts",
                 "Consult a qualified Nepal lawyer for specific legal advice",
@@ -513,6 +538,17 @@ Provide comprehensive, accurate, and well-cited legal research."""
                 "Review Supreme Court decisions for latest interpretations"
             ]
         }
+        
+        # Store in memory for history
+        if user_session not in query_history:
+            query_history[user_session] = []
+        query_history[user_session].append(result)
+        
+        # Keep only last 50 queries per session
+        if len(query_history[user_session]) > 50:
+            query_history[user_session] = query_history[user_session][-50:]
+        
+        return result
         
     except Exception as e:
         logger.error(f"Error conducting research: {str(e)}")
