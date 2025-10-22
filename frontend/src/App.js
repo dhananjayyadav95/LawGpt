@@ -92,20 +92,105 @@ function App() {
     if (!query.trim()) return;
     
     setLoading(true);
+    const queryText = query;
+    setQuery(''); // Clear input immediately
+    
     try {
-      const response = await axios.post(`${API}/analyze-legal-problem`, {
-        query_text: query,
-        user_session: userSession
+      // Initialize streaming analysis
+      const streamingAnalysis = {
+        query: {
+          query_text: queryText,
+          user_session: userSession,
+          timestamp: new Date().toISOString()
+        },
+        response: {
+          response_text: '',
+          relevant_laws: [],
+          sources: [],
+          timestamp: new Date().toISOString()
+        }
+      };
+      
+      setAnalysis(streamingAnalysis);
+      
+      // Use EventSource for Server-Sent Events
+      const eventSource = new EventSource(
+        `${API}/analyze-legal-problem-stream?` + new URLSearchParams({
+          query_text: queryText,
+          user_session: userSession
+        })
+      );
+      
+      // Alternative: Use fetch with streaming
+      const response = await fetch(`${API}/analyze-legal-problem-stream`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query_text: queryText,
+          user_session: userSession
+        })
       });
       
-      setAnalysis(response.data);
-      setQuery('');
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
       
-      // Save to localStorage immediately
-      const currentHistory = [...history, response.data];
-      localStorage.setItem(`history-${userSession}`, JSON.stringify(currentHistory));
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n');
+        
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              
+              if (data.type === 'content') {
+                // Append streaming text
+                setAnalysis(prev => ({
+                  ...prev,
+                  response: {
+                    ...prev.response,
+                    response_text: prev.response.response_text + data.text
+                  }
+                }));
+              } else if (data.type === 'complete') {
+                // Add metadata when complete
+                setAnalysis(prev => ({
+                  ...prev,
+                  response: {
+                    ...prev.response,
+                    relevant_laws: data.relevant_laws || [],
+                    sources: data.sources || []
+                  }
+                }));
+                
+                // Save to localStorage
+                const finalAnalysis = {
+                  query: streamingAnalysis.query,
+                  response: {
+                    ...streamingAnalysis.response,
+                    relevant_laws: data.relevant_laws || [],
+                    sources: data.sources || []
+                  }
+                };
+                const currentHistory = [...history, finalAnalysis];
+                localStorage.setItem(`history-${userSession}`, JSON.stringify(currentHistory));
+                
+                loadHistory();
+              } else if (data.type === 'error') {
+                throw new Error(data.message);
+              }
+            } catch (e) {
+              console.error('Error parsing stream:', e);
+            }
+          }
+        }
+      }
       
-      loadHistory(); // Refresh history from backend
     } catch (error) {
       console.error('Error analyzing legal problem:', error);
       alert('Error analyzing your legal problem. Please try again.');

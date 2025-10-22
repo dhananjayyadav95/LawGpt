@@ -5,6 +5,7 @@ Bulletproof implementation with all issues fixed
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import List, Optional
 import uuid
@@ -12,6 +13,7 @@ from datetime import datetime, timezone
 import os
 import logging
 import asyncio
+import json
 
 # Rate limiting
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -320,6 +322,135 @@ Provide accurate, practical, and actionable legal guidance."""
     except Exception as e:
         logger.error(f"Error analyzing legal problem: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error analyzing legal problem: {str(e)}")
+
+@app.post("/api/analyze-legal-problem-stream")
+@limiter.limit("10/minute")
+async def analyze_legal_problem_stream(request: Request, input: LegalQueryCreate):
+    """Analyze legal problems with streaming response (like ChatGPT)"""
+    
+    async def generate_stream():
+        try:
+            logger.info(f"Received streaming legal query: {input.query_text[:50]}...")
+            
+            if not AI_AVAILABLE:
+                yield f"data: {json.dumps({'error': 'AI service not available'})}\n\n"
+                return
+            
+            # Create legal query record
+            user_session = input.user_session or str(uuid.uuid4())
+            query = LegalQuery(
+                query_text=input.query_text,
+                user_session=user_session
+            )
+            
+            # Use enhanced legal knowledge system if available
+            if LEGAL_KNOWLEDGE_AVAILABLE:
+                system_message = create_enhanced_prompt(input.query_text, "analysis")
+            else:
+                system_message = """You are an expert Nepal legal assistant with LL.B qualification and extensive experience in Nepal's legal system."""
+            
+            user_message = f"""**Legal Query:** {input.query_text}
+
+**Analysis Requirements:**
+Please provide a comprehensive legal analysis following this structure:
+
+## 1. PROBLEM SUMMARY
+Brief overview of the legal issue
+
+## 2. APPLICABLE NEPAL LAWS
+List specific laws, acts, sections, and articles that apply
+
+## 3. LEGAL ANALYSIS
+Detailed analysis of rights, obligations, and legal position
+
+## 4. COURT JURISDICTION & PROCEDURE
+- Which court handles this matter
+- Required documents
+- Filing procedure
+- Expected timeline
+
+## 5. RECOMMENDED ACTIONS
+Step-by-step guidance on what to do
+
+## 6. IMPORTANT CONSIDERATIONS
+Warnings, deadlines, and critical points
+
+## 7. CITATIONS & SOURCES
+Specific law references used in this analysis
+
+Provide accurate, practical, and actionable legal guidance."""
+            
+            # Send initial metadata
+            yield f"data: {json.dumps({'type': 'start', 'query_id': query.id})}\n\n"
+            
+            # Stream the AI response
+            combined_prompt = f"{system_message}\n\nUser Query: {user_message}"
+            
+            full_response = ""
+            
+            # Use Gemini's streaming capability
+            response_stream = gemini_model.generate_content(combined_prompt, stream=True)
+            
+            for chunk in response_stream:
+                if chunk.text:
+                    full_response += chunk.text
+                    yield f"data: {json.dumps({'type': 'content', 'text': chunk.text})}\n\n"
+                    await asyncio.sleep(0)  # Allow other tasks to run
+            
+            # Parse response for laws and sources
+            import re
+            relevant_laws = []
+            law_patterns = [
+                r'Constitution of Nepal[^\n]*',
+                r'Civil Code[^\n]*',
+                r'Criminal Code[^\n]*',
+                r'Act [0-9]{4}[^\n]*',
+                r'Nepal[\s\w]*Act[^\n]*',
+            ]
+            
+            for pattern in law_patterns:
+                matches = re.findall(pattern, full_response, re.IGNORECASE)
+                relevant_laws.extend(matches)
+            
+            relevant_laws = list(set(relevant_laws))[:10]
+            
+            # Create response object
+            response_obj = LegalResponse(
+                query_id=query.id,
+                response_text=full_response,
+                relevant_laws=relevant_laws,
+                sources=[
+                    "Constitution of Nepal 2072",
+                    "Nepal Law Commission",
+                    "Supreme Court of Nepal",
+                ]
+            )
+            
+            # Store in history
+            analysis_result = LegalAnalysis(query=query, response=response_obj)
+            if user_session not in query_history:
+                query_history[user_session] = []
+            query_history[user_session].append(analysis_result.dict())
+            
+            if len(query_history[user_session]) > 50:
+                query_history[user_session] = query_history[user_session][-50:]
+            
+            # Send completion metadata
+            yield f"data: {json.dumps({'type': 'complete', 'relevant_laws': relevant_laws, 'sources': response_obj.sources})}\n\n"
+            
+        except Exception as e:
+            logger.error(f"Error in streaming: {str(e)}")
+            yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+    
+    return StreamingResponse(
+        generate_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"
+        }
+    )
 
 @app.post("/api/solve-problem")
 async def solve_problem(request: dict):
