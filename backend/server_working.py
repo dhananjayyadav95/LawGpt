@@ -61,17 +61,27 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Configure CORS - restrict to specific origins in production
 # Get allowed origins from environment variable or use defaults
-ALLOWED_ORIGINS = os.environ.get('ALLOWED_ORIGINS', '').split(',') if os.environ.get('ALLOWED_ORIGINS') else [
-    "http://localhost:3000",  # Local development
-    "http://localhost:5173",  # Vite dev server
-    # Add your production frontend URL here or set ALLOWED_ORIGINS env var
-    # Example: "https://yourdomain.com"
-]
+allowed_origins_env = os.environ.get('ALLOWED_ORIGINS', '')
 
-# Remove empty strings from the list
-ALLOWED_ORIGINS = [origin.strip() for origin in ALLOWED_ORIGINS if origin.strip()]
+if allowed_origins_env:
+    # If ALLOWED_ORIGINS is set
+    if allowed_origins_env == '*':
+        # Allow all origins (not recommended for production)
+        ALLOWED_ORIGINS = ["*"]
+        logger.warning("⚠️  CORS set to allow ALL origins (*) - not recommended for production!")
+    else:
+        # Parse comma-separated list
+        ALLOWED_ORIGINS = [origin.strip() for origin in allowed_origins_env.split(',') if origin.strip()]
+else:
+    # Default to localhost for development
+    ALLOWED_ORIGINS = [
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "https://law-gpt.vercel.app",  # Add your production URL as fallback
+    ]
+    logger.info("Using default ALLOWED_ORIGINS (no env var set)")
 
-logger.info(f"CORS allowed origins: {ALLOWED_ORIGINS}")
+logger.info(f"✅ CORS allowed origins: {ALLOWED_ORIGINS}")
 
 app.add_middleware(
     CORSMiddleware,
