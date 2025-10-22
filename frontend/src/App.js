@@ -345,19 +345,127 @@ function App() {
   };
 
   const formatResponse = (text) => {
-    // Simple formatting for better readability
+    // Enhanced formatting for new structured responses
     return text
       .split('\n')
       .map((line, index) => {
-        if (line.includes('**') || line.includes('##')) {
-          return <h3 key={index} className="font-semibold text-lg mt-4 mb-2 text-slate-800">{line.replace(/[*#]/g, '')}</h3>;
+        const trimmedLine = line.trim();
+        
+        // Section headers with ###
+        if (line.startsWith('###')) {
+          return (
+            <h3 key={index} className="font-bold text-xl mt-6 mb-3 text-slate-900 border-b-2 border-slate-200 pb-2">
+              {line.replace(/###/g, '').trim()}
+            </h3>
+          );
         }
-        if (line.trim().startsWith('-') || line.trim().startsWith('•')) {
-          return <li key={index} className="ml-4 text-slate-700">{line.replace(/^[-•]\s*/, '')}</li>;
+        
+        // Section headers with ##
+        if (line.startsWith('##')) {
+          return (
+            <h4 key={index} className="font-semibold text-lg mt-5 mb-2 text-slate-800">
+              {line.replace(/##/g, '').trim()}
+            </h4>
+          );
         }
-        if (line.trim()) {
+        
+        // Bold text with **
+        if (line.includes('**')) {
+          const parts = line.split('**');
+          return (
+            <p key={index} className="mb-2 text-slate-700 leading-relaxed">
+              {parts.map((part, i) => 
+                i % 2 === 1 ? <strong key={i} className="font-semibold text-slate-900">{part}</strong> : part
+              )}
+            </p>
+          );
+        }
+        
+        // Situation assessment box (special formatting)
+        if (trimmedLine.includes('━━━━━━━━━━━━━━━━━━━━━━━━━━━━')) {
+          return <div key={index} className="border-t-2 border-slate-300 my-2"></div>;
+        }
+        
+        // Severity indicators with emojis
+        if (trimmedLine.includes('Severity:') || trimmedLine.includes('🟢') || trimmedLine.includes('🟡') || trimmedLine.includes('🔴')) {
+          return (
+            <div key={index} className="bg-slate-50 p-3 rounded-lg mb-2 border-l-4 border-slate-400">
+              <p className="text-slate-800 font-medium">{trimmedLine}</p>
+            </div>
+          );
+        }
+        
+        // Cost, timeline, success indicators
+        if (trimmedLine.includes('NPR') || trimmedLine.includes('timeline:') || trimmedLine.includes('probability:')) {
+          return (
+            <div key={index} className="bg-blue-50 p-2 rounded mb-2">
+              <p className="text-blue-900 text-sm font-medium">{trimmedLine}</p>
+            </div>
+          );
+        }
+        
+        // Next step indicator
+        if (trimmedLine.includes('📍 NEXT STEP') || trimmedLine.includes('NEXT STEP:')) {
+          return (
+            <div key={index} className="bg-green-100 border-l-4 border-green-500 p-4 my-4 rounded-r-lg">
+              <p className="text-green-900 font-semibold text-lg">{trimmedLine}</p>
+            </div>
+          );
+        }
+        
+        // Warning items (❌ or ✗)
+        if (trimmedLine.startsWith('❌') || trimmedLine.startsWith('✗')) {
+          return (
+            <div key={index} className="flex items-start gap-2 mb-2 text-red-700">
+              <span className="text-red-500 font-bold">✗</span>
+              <p className="flex-1">{trimmedLine.replace(/^[❌✗]\s*/, '')}</p>
+            </div>
+          );
+        }
+        
+        // Success items (✅ or ✓)
+        if (trimmedLine.startsWith('✅') || trimmedLine.startsWith('✓') || trimmedLine.startsWith('□')) {
+          return (
+            <div key={index} className="flex items-start gap-2 mb-2 text-green-700">
+              <span className="text-green-500 font-bold">{trimmedLine.startsWith('□') ? '☐' : '✓'}</span>
+              <p className="flex-1">{trimmedLine.replace(/^[✅✓□]\s*/, '')}</p>
+            </div>
+          );
+        }
+        
+        // Warning items (⚠️)
+        if (trimmedLine.startsWith('⚠️')) {
+          return (
+            <div key={index} className="flex items-start gap-2 mb-2 text-yellow-700">
+              <span className="text-yellow-500 font-bold">⚠</span>
+              <p className="flex-1">{trimmedLine.replace(/^⚠️\s*/, '')}</p>
+            </div>
+          );
+        }
+        
+        // Bullet points
+        if (trimmedLine.startsWith('-') || trimmedLine.startsWith('•')) {
+          return (
+            <li key={index} className="ml-6 mb-1 text-slate-700 list-disc">
+              {trimmedLine.replace(/^[-•]\s*/, '')}
+            </li>
+          );
+        }
+        
+        // Option headers with ⭐
+        if (trimmedLine.includes('⭐')) {
+          return (
+            <div key={index} className="bg-amber-50 border-l-4 border-amber-400 p-3 my-3 rounded-r-lg">
+              <p className="text-amber-900 font-bold">{trimmedLine}</p>
+            </div>
+          );
+        }
+        
+        // Regular paragraphs
+        if (trimmedLine) {
           return <p key={index} className="mb-2 text-slate-700 leading-relaxed">{line}</p>;
         }
+        
         return <br key={index} />;
       });
   };
