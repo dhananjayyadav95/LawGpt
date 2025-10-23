@@ -476,7 +476,11 @@ function App() {
       <header className="bg-white border-b border-slate-200 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <div 
+              className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={() => window.location.reload()}
+              title="Click to refresh"
+            >
               <div className="p-2 bg-slate-800 rounded-lg">
                 <Scale className="h-6 w-6 text-white" />
               </div>
@@ -549,6 +553,14 @@ function App() {
                       placeholder="Example: I have a property dispute with my neighbor about boundary lines. What are my rights under Nepal law?"
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          if (query.trim() && !loading) {
+                            analyzeQuery();
+                          }
+                        }
+                      }}
                       className="min-h-[120px] resize-none border-slate-200 focus:border-slate-400 focus:ring-slate-400"
                       style={{fontFamily: 'Inter, sans-serif'}}
                     />
@@ -737,6 +749,14 @@ function App() {
                       placeholder="Example: I need comprehensive research on property inheritance laws in Nepal, including Supreme Court precedents and required procedures for property transfer after death."
                       value={researchQuery}
                       onChange={(e) => setResearchQuery(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          if (researchQuery.trim() && !researchLoading) {
+                            conductLegalResearch();
+                          }
+                        }
+                      }}
                       className="min-h-[120px] resize-none border-slate-200 focus:border-slate-400 focus:ring-slate-400"
                       style={{fontFamily: 'Inter, sans-serif'}}
                     />
