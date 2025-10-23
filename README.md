@@ -2,6 +2,21 @@
 
 AI-powered legal assistance platform for Nepal law with streaming responses and comprehensive legal guidance.
 
+## 📚 Documentation
+
+**New to the project? Start here:**
+
+- **[📘 Project Guide](docs/PROJECT_GUIDE.md)** - Complete beginner-friendly guide (for non-programmers)
+- **[🏗️ Technical Architecture](docs/TECHNICAL_ARCHITECTURE.md)** - Detailed technical documentation (for developers)
+- **[⚡ Quick Reference](docs/QUICK_REFERENCE.md)** - One-page cheat sheet (for daily use)
+
+**Additional Resources:**
+- [Production Checklist](docs/PRODUCTION_CHECKLIST.md)
+- [AI Provider Guide](docs/AI_PROVIDER_GUIDE.md)
+- [Security Guide](docs/SECURITY_FIXES_APPLIED.md)
+- [Quick Start Guide](docs/QUICK_START.md)
+- [Streaming Features](docs/STREAMING_FEATURE.md)
+
 ## 🌟 Features
 
 - **🤖 AI-Powered:** Google Gemini 2.5 Flash integration
@@ -79,15 +94,7 @@ ALLOWED_ORIGINS=http://localhost:3000
    - `REACT_APP_BACKEND_URL=https://your-backend.railway.app`
 3. Deploy automatically
 
-## 📚 Documentation
 
-Detailed documentation available in `/docs`:
-
-- [Production Checklist](docs/PRODUCTION_CHECKLIST.md)
-- [AI Provider Guide](docs/AI_PROVIDER_GUIDE.md)
-- [Security Guide](docs/SECURITY_FIXES_APPLIED.md)
-- [Quick Start Guide](docs/QUICK_START.md)
-- [Streaming Features](docs/STREAMING_FEATURE.md)
 
 ## 🔧 Project Structure
 
