@@ -1,225 +1,179 @@
-  # Nepal Law Assistant Platform
+  # Nepal Law Assistant 🏛️
 
-A comprehensive AI-powered legal assistance platform designed specifically for Nepal's legal system. This platform helps users get legal guidance, analyze documents, conduct legal research, and access Nepal law resources.
+AI-powered legal assistance platform for Nepal law with streaming responses and comprehensive legal guidance.
 
-## 🏛️ Features
+## 🌟 Features
 
-### 1. **Text-Based Legal Consultation**
-- Ask legal questions in plain language
-- Get AI-powered responses with Nepal law references
-- Session-based query history
-- Relevant law citations and sources
+- **🤖 AI-Powered:** Google Gemini 2.5 Flash integration
+- **🇳🇵 Nepal Law Expertise:** Specialized in Nepal legal system
+- **⚡ Streaming Responses:** Real-time text like ChatGPT
+- **📱 Mobile Responsive:** Works on all devices
+- **💾 Query History:** Save and revisit previous queries
+- **🔒 Secure:** Environment-based config, CORS protection, rate limiting
+- **🆓 Free to Use:** No subscription required
 
-### 2. **Document Analysis**
-- Upload PDF, DOCX, or TXT legal documents
-- AI analysis of document content
-- Identification of legal issues and risks
-- Specific recommendations based on Nepal law
-- Relevant law references for uploaded documents
+## 🏗️ Tech Stack
 
-### 3. **Comprehensive Legal Research**
-- In-depth legal research with case precedents
-- Supreme Court of Nepal case references
-- Step-by-step legal procedures
-- Required documents and timelines
-- Cost estimates and legal remedies
+- **Backend:** FastAPI (Python 3.9+)
+- **Frontend:** React.js with Tailwind CSS
+- **AI:** Google Gemini 2.5 Flash
+- **Deployment:** Railway (Backend) + Vercel (Frontend)
 
-### 4. **Legal Document Templates** (Coming Soon)
-- Generate legal document templates
-- Court-compliant formats
-- Customizable placeholders
-- Filing instructions and requirements
+## 🚀 Quick Start
 
-## 🛠️ Technology Stack
+### 1. Clone Repository
+```bash
+git clone https://github.com/dhananjayyadav95/LawGpt.git
+cd LawGpt
+```
 
-### Backend
-- **FastAPI** - Modern Python web framework
-- **MongoDB** - Document database for storing queries and analyses
-- ** LLM** - AI integration with Gemini 2.5 Pro
-- **PyPDF2** - PDF document processing
-- **python-docx** - Word document processing
+### 2. Backend Setup
+```bash
+cd backend
+pip install -r requirements.txt
+cp .env.example .env
+# Add your GOOGLE_API_KEY to .env
+python server_working.py
+```
 
-### Frontend
-- **React 19** - Modern React with latest features
-- **shadcn/ui** - Beautiful, accessible UI components
-- **Tailwind CSS** - Utility-first CSS framework
-- **Lucide React** - Beautiful icons
-- **Axios** - HTTP client for API calls
+### 3. Frontend Setup
+```bash
+cd frontend
+npm install
+npm start
+```
 
-### AI & Legal Analysis
-- **Multiple AI Providers** - OpenAI GPT-4, Anthropic Claude, Google Gemini, 
-- **Flexible Configuration** - Choose the AI provider that fits your needs and budget
-- **Custom Legal Prompts** - Specialized for Nepal law across all providers
-- **Document Processing** - Text extraction and analysis
-- **Legal Pattern Recognition** - Identifies laws, cases, and procedures
+### 4. Environment Variables
+Create `backend/.env` with:
+```env
+GOOGLE_API_KEY=your_google_api_key_here
+AI_PROVIDER=google
+AI_MODEL=gemini-2.5-flash
+ALLOWED_ORIGINS=http://localhost:3000
+```
 
-## 🚀 Getting Started
+## �  Usage Examples
 
-### Prerequisites
-- Python 3.8+
-- Node.js 16+
-- MongoDB
-
-
-### Backend Setup
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd nepal-law-assistant
-   ```
-
-2. **Install Python dependencies**
-   ```bash
-   cd backend
-   pip install -r requirements.txt
-   ```
-
-3. **Configure environment variables**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your configuration:
-   # MONGO_URL=mongodb://localhost:27017
-   # DB_NAME=nepal_law_db
-   # AI_PROVIDER=openai  # or anthropic, google, 
-   # OPENAI_API_KEY=your_openai_api_key_here
-   # CORS_ORIGINS=http://localhost:3000
-   ```
-
-4. **Start the backend server**
-   ```bash
-   uvicorn server:app --reload --host 0.0.0.0 --port 8000
-   ```
-
-### Frontend Setup
-
-1. **Install Node.js dependencies**
-   ```bash
-   cd frontend
-   npm install
-   ```
-
-2. **Configure environment variables**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your configuration:
-   # REACT_APP_BACKEND_URL=http://localhost:8000
-   ```
-
-3. **Start the frontend development server**
-   ```bash
-   npm start
-   ```
-
-4. **Access the application**
-   Open [http://localhost:3000](http://localhost:3000) in your browser
-
-## 📚 API Endpoints
-
-### Legal Consultation
-- `POST /api/analyze-legal-problem` - Analyze legal problems
-- `GET /api/legal-history/{session}` - Get query history
-
-### Document Analysis
-- `POST /api/upload-document` - Upload and analyze documents
-- `GET /api/document-history/{session}` - Get document analysis history
+### Legal Query
+```
+"My neighbor built a wall on my property. What are my rights under Nepal law?"
+```
 
 ### Legal Research
-- `POST /api/legal-research` - Comprehensive legal research
-- `GET /api/legal-templates` - Get available document templates
-- `POST /api/generate-legal-template` - Generate legal document templates
+```
+"Research property inheritance laws in Nepal including recent court decisions"
+```
 
-## 🏛️ Nepal Legal System Integration
+## 🚀 Production Deployment
 
-### Supported Legal Areas
-- **Constitutional Law** - Constitution of Nepal 2072
-- **Civil Law** - Civil Code and procedures
-- **Criminal Law** - Criminal Code and procedures
-- **Property Law** - Land and property regulations
-- **Family Law** - Marriage, divorce, inheritance
-- **Commercial Law** - Business and contract law
-- **Administrative Law** - Government procedures
+### Backend (Railway)
+1. Connect GitHub repository
+2. Set environment variables:
+   - `GOOGLE_API_KEY`
+   - `ALLOWED_ORIGINS=https://your-frontend.vercel.app`
+3. Deploy automatically
 
-### Legal Document Support
-- Court petitions and applications
-- Legal notices and contracts
-- Affidavits and power of attorney
-- Property transfer documents
-- Complaint applications
-- Appeal documents
+### Frontend (Vercel)
+1. Import GitHub repository
+2. Set environment variable:
+   - `REACT_APP_BACKEND_URL=https://your-backend.railway.app`
+3. Deploy automatically
 
-### Case Precedent Integration
-- Supreme Court of Nepal decisions
-- Nepal Law Journal references
-- Legal precedent analysis
-- Court procedure guidance
+## 📚 Documentation
 
-## 🔒 Security & Privacy
+Detailed documentation available in `/docs`:
 
-- **Session-based data storage** - User data isolated by session
-- **Secure file upload** - File type and size validation
-- **Data encryption** - Sensitive data protection
-- **Privacy compliance** - No personal data retention beyond session
+- [Production Checklist](docs/PRODUCTION_CHECKLIST.md)
+- [AI Provider Guide](docs/AI_PROVIDER_GUIDE.md)
+- [Security Guide](docs/SECURITY_FIXES_APPLIED.md)
+- [Quick Start Guide](docs/QUICK_START.md)
+- [Streaming Features](docs/STREAMING_FEATURE.md)
 
-## 🌟 Key Benefits
+## 🔧 Project Structure
 
-### For Citizens
-- **Accessible Legal Guidance** - Get legal help in plain language
-- **Cost-Effective** - Reduce initial legal consultation costs
-- **24/7 Availability** - Access legal guidance anytime
-- **Document Analysis** - Understand legal documents quickly
+```
+├── backend/
+│   ├── server_working.py      # Main FastAPI server
+│   ├── legal_knowledge.py    # AI prompts and legal logic
+│   ├── ai_providers.py       # AI provider integrations
+│   ├── requirements.txt      # Python dependencies
+│   └── .env.example         # Environment template
+├── frontend/
+│   ├── src/
+│   │   ├── App.js           # Main React component
+│   │   └── App.css          # Styles
+│   ├── package.json         # Node dependencies
+│   └── public/index.html    # HTML template
+├── docs/                    # Documentation
+├── .github/workflows/       # CI/CD
+└── README.md               # This file
+```
 
-### For Legal Professionals
-- **Research Assistant** - Quick access to legal precedents
-- **Document Templates** - Generate standard legal documents
-- **Case Analysis** - AI-powered legal document review
-- **Client Education** - Help clients understand legal issues
+## 🎯 Key Features
 
-### For Students & Researchers
-- **Legal Education** - Learn Nepal law through practical examples
-- **Research Tool** - Access comprehensive legal information
-- **Case Studies** - Analyze real legal scenarios
-- **Academic Support** - Understand complex legal concepts
+### User Experience
+- **Click logo** → Refresh page
+- **Press Enter** → Submit query
+- **Shift+Enter** → New line
+- **Streaming responses** → Real-time feedback
+- **Visual indicators** → Severity, cost, timeline
 
-## 🛣️ Roadmap
+### AI Response Structure
+1. **Quick Answer** (2-3 sentences)
+2. **Immediate Next Step** (what to do now)
+3. **Situation Assessment** (severity, cost, timeline)
+4. **Your Options** (2-3 clear paths)
+5. **Step-by-Step Plan** (weekly breakdown)
+6. **Legal Basis** (specific laws and citations)
+7. **Practical Details** (offices, contacts, costs)
+8. **Warnings** (common mistakes to avoid)
 
-### Phase 1 (Current)
-- ✅ Basic legal consultation
-- ✅ Document upload and analysis
-- ✅ Legal research with precedents
-- ✅ Session-based history
+## �L Security Features
 
-### Phase 2 (In Development)
-- 🔄 Legal document template generator
-- 🔄 Multi-language support (Nepali)
-- 🔄 Advanced case precedent search
-- 🔄 Legal procedure workflows
+- ✅ No hardcoded API keys
+- ✅ CORS protection
+- ✅ Rate limiting (10 requests/minute)
+- ✅ Input validation
+- ✅ Environment-based configuration
 
-### Phase 3 (Planned)
-- 📋 Lawyer directory integration
-- 📋 Court filing assistance
-- 📋 Legal fee calculator
-- 📋 Mobile application
+## � ePerformance
+
+- **Streaming responses** for better perceived performance
+- **Optimized prompts** for faster AI processing
+- **Local storage** for query history
+- **Mobile-first** responsive design
+
+## 🎯 Roadmap
+
+- [ ] User authentication (Google OAuth)
+- [ ] Database integration (MongoDB)
+- [ ] Document upload and analysis
+- [ ] Lawyer marketplace
+- [ ] Nepali language support
+- [ ] Mobile app (React Native)
 
 ## 🤝 Contributing
 
-We welcome contributions from legal professionals, developers, and Nepal law experts. Please see our contributing guidelines for more information.
+1. Fork the repository
+2. Create feature branch: `git checkout -b feature-name`
+3. Commit changes: `git commit -m 'Add feature'`
+4. Push to branch: `git push origin feature-name`
+5. Submit pull request
 
-### Areas for Contribution
-- Legal knowledge base expansion
-- Nepal law document templates
-- Case precedent database
-- Multi-language support
-- UI/UX improvements
+## 📄 License
 
-## 📄 Legal Disclaimer
+MIT License - see LICENSE file for details.
 
-This platform provides general legal information and AI-generated guidance. It is not a substitute for professional legal advice. For specific legal matters, please consult with qualified Nepal legal professionals.
+## 🆘 Support
 
-## 📞 Support
-
-For technical support or legal content questions, please contact our team or create an issue in the repository.
+- 📖 Check documentation in `/docs`
+- � Report tissues on GitHub
+- 💬 Discussions welcome
 
 ---
 
-**Built with ❤️ for Nepal's legal community**
+**🌐 Live Demo:** [https://law-gpt.vercel.app](https://law-gpt.vercel.app)
+
+**📊 Status:** ✅ Production Ready | 🔒 Secure | ⚡ Fast | 📱 Mobile-Friendly
+
+**Made with ❤️ for Nepal's legal community**
