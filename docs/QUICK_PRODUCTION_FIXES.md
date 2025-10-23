@@ -6,7 +6,7 @@
 
 **Current Problem:**
 ```python
-os.environ['GOOGLE_API_KEY'] = 'AIzaSyCYhbFypKpjOF3ACqPgmgbb6-ir_J53IEY'
+os.environ['GOOGLE_API_KEY'] = 'your_hardcoded_api_key_here'
 ```
 
 **Fix:**
