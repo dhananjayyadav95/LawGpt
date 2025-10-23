@@ -475,14 +475,34 @@ function App() {
       {/* Header */}
       <header className="bg-white border-b border-slate-200 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 py-6">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-slate-800 rounded-lg">
-              <Scale className="h-6 w-6 text-white" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-slate-800 rounded-lg">
+                <Scale className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-slate-900" style={{fontFamily: 'Inter, sans-serif'}}>Nepal Law Assistant</h1>
+                <p className="text-slate-600 text-sm">Get guidance on Nepal laws and regulations</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900" style={{fontFamily: 'Inter, sans-serif'}}>Nepal Law Assistant</h1>
-              <p className="text-slate-600 text-sm">Get guidance on Nepal laws and regulations</p>
-            </div>
+            {/* New Chat Button */}
+            {(analysis || researchResult) && (
+              <Button
+                onClick={() => {
+                  setAnalysis(null);
+                  setResearchResult(null);
+                  setDocumentAnalysis(null);
+                  setProblemSolution(null);
+                  setQuery('');
+                  setResearchQuery('');
+                }}
+                variant="outline"
+                className="flex items-center gap-2 border-slate-300 hover:border-slate-400 hover:bg-slate-50"
+              >
+                <FileText className="h-4 w-4" />
+                New Chat
+              </Button>
+            )}
           </div>
         </div>
       </header>
